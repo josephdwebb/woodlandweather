@@ -6,26 +6,26 @@
 ## ------------------------------ Work Space -----------------------------------
 ## Global Variables
 ### The name of the site you are searching for
-sitename: "Agnew_State_Forest"
-site_latitude: 
-site_longitude:
+sitename = "Agnew_State_Forest"
+site_latitude =
+site_longitude =
 
 ### Station Matching Conditions 
-min_station_distance: 0 #kilometers
-max_station_distance: 10 #kilometers
-number_of_stations: 3
+min_station_distance = 0 #kilometers
+max_station_distance = 10 #kilometers
+number_of_stations = 3
 
 ## Date of Interest
-month: 06
-year: 2022
+month = 06
+year = 2022
 
 ### PCA
-peform_PCA: TRUE
-  dp01: TRUE
-  dp10: TRUE
-  dp35: TRUE 
-  dp70: TRUE 
-  CLDD: TRUE
+peform_PCA = TRUE
+  dp01 = TRUE
+  dp10 = TRUE
+  dp35 = TRUE 
+  dp70 = TRUE 
+  CLDD = TRUE
   ...
 graph_PCA: FALSE
 
