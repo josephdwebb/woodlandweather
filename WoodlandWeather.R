@@ -22,27 +22,16 @@ number_of_stations = 3
 month = 06
 year = 2022
 
-### PCA
-peform_PCA = TRUE
-  dp01 = TRUE
-  dp10 = TRUE
-  dp35 = TRUE 
-  dp70 = TRUE 
-  CLDD = TRUE
-  ...
-graph_PCA: FALSE
-
 ### Disclaimer: To search by specific variable range view "StationData.csv".
 ## -----------------------------------------------------------------------------
 ## ---------------------------- Function Code ----------------------------------
 ## Start of function code
 woodlandweather <- function() {
-  data_folder <- "station_data_temp"  ## Name of the temporary data folder
   
-  # Check if the data folder exists
-  if (!dir.exists(data_folder)) {
+  # Check to see if station data is installed 
+  if (!dir.exists("station_data_temp")) {
     # If it doesn't exist, create the folder and download the files
-    dir.create(data_folder)
+    dir.create("station_data_temp")
     
     # Define the URL of the NOAA Weather Station Monthly Reports
     noaa_data_url <- "https://www.ncei.noaa.gov/data/global-summary-of-the-month/access/"
