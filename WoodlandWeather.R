@@ -27,40 +27,72 @@ year = 2022
 ## ---------------------------- Function Code ----------------------------------
 ## Start of function code
 woodlandweather <- function() {
-  
+
   # Check to see if station data is installed 
   if (!dir.exists("station_data_temp")) {
-    # If it doesn't exist, create the folder and download the files
+
     dir.create("station_data_temp")
-    
-    # Define the URL of the NOAA Weather Station Monthly Reports
-    noaa_data_url <- "https://www.ncei.noaa.gov/data/global-summary-of-the-month/access/"
-    
-    # Function to download and save a file
-    download_and_save_file <- function(url, folder) {
-      filename <- basename(url)
-      destination <- file.path(folder, filename)
-      download.file(url, destfile = destination, mode = "wb")
+
+    ## Generate List of Unique Appearances in CLOSE_STAT ##
+    unique_stations <- unique(forest_data$CLOSE_STAT)
+
+    # Set the URL for the csv files
+    url <- "https://www.ncei.noaa.gov/data/global-summary-of-the-month/access/"
+
+      # Loop through the station IDs and download the corresponding csv file
+      for (station_id in forest_data$CLOSE_STAT) {
+        if (startsWith(station_id, "US")) {
+          file_url <- paste0(url, station_id, ".csv")
+          download.file(file_url, destfile = paste0("StatData/", station_id, ".csv"), method = "curl")
+        }
+      }
+
+      ### Create new matrix that combines the station data for May 2022
+      ## find used varaibles
+      # Set the path to the directory containing the CSV files
+      path <- "station_data_temp"
+
+      # Get a list of all the CSV files in the directory
+      files <- list.files(path, pattern = ".csv$")
+
+      # Initialize an empty data frame to store the frequency counts
+      freq_table <- data.frame(variable = character(),
+                              count = numeric(),
+                              stringsAsFactors = FALSE)
+
+      # Loop through the CSV files
+      for (file in files) {
+        # Read in the data from the current file
+        data <- read.csv(file.path(path, file), stringsAsFactors = FALSE)
+        
+        # Get the column names
+        col_names <- names(data)
+        
+        # Remove Station, Date, Latitude, Longitude, and Name columns
+        col_names <- col_names[!col_names %in% c("STATION", "DATE", "LATITUDE", "LONGITUDE", "NAME")]
+        
+        # Loop through the remaining columns
+        for (col_name in col_names) {
+          # Check if the variable is already in the frequency table
+          if (col_name %in% freq_table$variable) {
+            # Increment the count for the variable
+            freq_table[freq_table$variable == col_name, "count"] <- freq_table[freq_table$variable == col_name, "count"] + 1
+      } else {
+        # Add a new row to the frequency table for the variable
+        freq_table <- rbind(freq_table, data.frame(variable = col_name, count = 1, stringsAsFactors = FALSE))
+      }
     }
-    
-    # Fetch the webpage and extract links to CSV files
-    page <- read_html(noaa_data_url)
-    links <- page %>%
-      html_nodes("a[href^='US'][href$='.csv']") %>%
-      html_attr("href")
-    
-    # Download and save each CSV file
-    for (link in links) {
-      full_url <- paste0(noaa_data_url, link)
-      download_and_save_file(full_url, data_folder)
+  }
+
+  freq_table <- subset(freq_table, !grepl("ATTRIBUTES$", variable))
+
+  # Print the frequency table (45 variables)
+  print(freq_table)
+    } else {
+      cat("station_data_temp found.\n")
     }
-    
-    cat("station_data_temp created and files downloaded.\n")
-  } else {
-    cat("station_data_temp found.\n")
   }
 }
-
 
 
 
