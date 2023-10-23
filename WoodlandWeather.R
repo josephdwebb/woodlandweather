@@ -22,34 +22,28 @@ number_of_stations = 3
 month = 06
 year = 2022
 
-### Disclaimer: To search by specific variable range view "StationData.csv".
+### Disclaimer: To search by specific variable range view "SiteData.csv".
 ## -----------------------------------------------------------------------------
 ## ---------------------------- Function Code ----------------------------------
 ## Start of function code
 woodlandweather <- function() {
 
-  # Check to see if station data is installed 
+  ## Check if station data is installed 
   if (!dir.exists("station_data_temp")) {
-
     dir.create("station_data_temp")
 
-    ## Generate List of Unique Appearances in CLOSE_STAT ##
-    unique_stations <- unique(forest_data$CLOSE_STAT)
+    ### Defining variables for download
+    noaa_url <- "https://www.ncei.noaa.gov/data/global-summary-of-the-month/access/"
+    stationid_vector <- read.csv("assets/StationID.csv", header = FALSE, skip = 1)$V1
+    download_time <- format(Sys.Date(), format = "%d %B %Y")
 
-    # Set the URL for the csv files
-    url <- "https://www.ncei.noaa.gov/data/global-summary-of-the-month/access/"
-
-      # Loop through the station IDs and download the corresponding csv file
-      for (station_id in forest_data$CLOSE_STAT) {
-        if (startsWith(station_id, "US")) {
-          file_url <- paste0(url, station_id, ".csv")
-          download.file(file_url, destfile = paste0("StatData/", station_id, ".csv"), method = "curl")
-        }
+    ### Download monthly data report of all US stations. (Approximately 65,000 stations)
+      for (stationid in stationid_vector) {
+        file_url <- paste0(url, stationid)
+        download.file(file_url, destfile = paste0("station_data_temp/", stationid), method = "curl")
       }
 
-      ### Create new matrix that combines the station data for May 2022
-      ## find used varaibles
-      # Set the path to the directory containing the CSV files
+    ### Create matrix that combines all US stations
       path <- "station_data_temp"
 
       # Get a list of all the CSV files in the directory
