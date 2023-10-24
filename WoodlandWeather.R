@@ -5,7 +5,7 @@
 
 ### Necessary Libraries
 library(rvest)
-
+library(geosphere) #install.packages("geosphere") #See instructions for downlading geosphere
 ## ------------------------------ Work Space -----------------------------------
 ## Global Variables
 ### The name of the site you are searching for
@@ -13,18 +13,19 @@ sitename = "Agnew State Forest"
 site_latitude = 40
 site_longitude = -75
 
+## Date of Interest
+month = 07
+year = 2021
+
 ### Station Matching Conditions 
 min_station_distance = 0 #kilometers
 max_station_distance = 10 #kilometers
 number_of_stations = 3
 
-## Date of Interest
-month = 06
-year = 2022
-
 ### Disclaimer: To search by specific variable range view "SiteData.csv".
 ## -----------------------------------------------------------------------------
 ## ---------------------------- Function Code ----------------------------------
+
 ## Start of function code
 woodlandweather <- function() {
 ## Prerequisite: Check if station data is installed 
@@ -57,44 +58,64 @@ woodlandweather <- function() {
     end_time <- Sys.time()  # Record the end time
     download_duration <- end_time - start_time # equation to calculate download duration
 
-    cat(paste("Download complete. Downloaded", downloaded_stations, "Stations in", as.numeric(download_duration, units = "secs"), "seconds.\n"))
+    cat(paste("Download complete. Downloaded", downloaded_stations, "Stations in", as.numeric(download_duration, units = "mins"), "minutes.\n"))
 
   } else {
     # Bypass Station Download if folder located
-    cat(paste("Station_Data Folder located.\n"))
+    cat(paste("Station_Data_Temp Folder located.\n"))
   }
  
-## Step 1 of 3: Creating USStationData, combining all individual files.
+## Step 1 of 3: Combine all individual files to create USStationData
+  # Define the list of required variables; will define columns in USStationData
+  required_variables <- c("STATION","DATE","LATITUDE","LONGITUDE","ELEVATION","NAME","DP01",
+                          "DP10","DP1X","DSND","DSNW","DYSD","DYSN","DYXP",
+                          "EMSD","EMSN","EMXP","PRCP","SNOW")
+
   if (!exists("USStationData")) {
-    ### Defining variables for compilation 
-    USStationData <- data.frame() # Define an empty data frame
-    station_files <- list.files("station_data_temp", full.names = TRUE) # List all CSV files in the directory
+    # Define an empty data frame with the required columns
+    USStationData <- data.frame(matrix(NA, nrow = 0, ncol = length(required_variables)))
+    colnames(USStationData) <- required_variables
+
+    station_files <- list.files("station_data_temp", full.names = TRUE, pattern = "\\.csv$") # List CSV files
 
     # Loop through each CSV file and append its data to USStationData
-      for (station_file in station_files) {
-        # Read the CSV file
-        data <- read.csv(station_file, header = TRUE, stringsAsFactors = FALSE)
+    for (station_file in station_files) {
+      # Read the CSV file
+      data <- read.csv(station_file, header = TRUE, stringsAsFactors = FALSE)
       
-          # Append the data to USStationData
-          USStationData <- rbind(USStationData, data)
-
-        cat("USStationData Dataframe updated.\n")
+      # Ensure that the data frame has all the required columns
+      for (var in required_variables) {
+        if (!(var %in% colnames(data))) {
+          data[var] <- NA
+        }
       }
+
+      # Reorder columns to match the required_variables order
+      data <- data[, required_variables]
+      
+      # Append the data to USStationData
+      USStationData <- rbind(USStationData, data)
+      
+      cat(station_file, "appended to USStationData.\n")
+    }
 
   } else {
     cat("USStationData located.\n")
   }
-  
-}
 
 ## Step 2 of 3: Filtering USStatonData by month and year
   StationData <- subset(USStationData, 
                     as.integer(substring(DATE, 1, 4)) == year & 
                     as.integer(substring(DATE, 6, 7)) == month)
 
+
 ## Step 3 of 3: Matching desired coordinate to closest station(s)
+  StationData$Distance <- distHaversine(
+  matrix(c(site_longitude, site_latitude), ncol = 2), # Convert the site coordinates to a matrix
+  matrix(c(StationData$LONGITUDE, StationData$LATITUDE), ncol = 2) # Create a matrix of data coordinates
+)
 
-
+}
 ## Step 4 of 4: Generating Output Table
 
 
