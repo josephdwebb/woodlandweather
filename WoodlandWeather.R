@@ -9,7 +9,7 @@ library(rvest)
 ## ------------------------------ Work Space -----------------------------------
 ## Global Variables
 ### The name of the site you are searching for
-sitename = "Agnew_State_Forest"
+sitename = "Agnew State Forest"
 site_latitude = 40
 site_longitude = -75
 
@@ -27,66 +27,76 @@ year = 2022
 ## ---------------------------- Function Code ----------------------------------
 ## Start of function code
 woodlandweather <- function() {
-
-  ## Check if station data is installed 
+## Prerequisite: Check if station data is installed 
   if (!dir.exists("station_data_temp")) {
     dir.create("station_data_temp")
 
-    ### Defining variables for download
+    ### Defining variables for download (WARNING: Changing may break code)
     noaa_url <- "https://www.ncei.noaa.gov/data/global-summary-of-the-month/access/"
     stationid_vector <- read.csv("assets/StationID.csv", header = FALSE, skip = 1)$V1
     download_time <- format(Sys.Date(), format = "%d %B %Y")
 
     ### Download monthly data report of all US stations. (Approximately 65,000 stations)
-      for (stationid in stationid_vector) {
-        file_url <- paste0(url, stationid)
-        download.file(file_url, destfile = paste0("station_data_temp/", stationid), method = "curl")
-      }
+    start_time <- Sys.time()  # Record download start time
+    downloaded_stations <- 0  # Define an empty variable count
 
-    ### Create matrix that combines all US stations
-      path <- "station_data_temp"
-
-      # Get a list of all the CSV files in the directory
-      files <- list.files(path, pattern = ".csv$")
-
-      # Initialize an empty data frame to store the frequency counts
-      freq_table <- data.frame(variable = character(),
-                              count = numeric(),
-                              stringsAsFactors = FALSE)
-
-      # Loop through the CSV files
-      for (file in files) {
-        # Read in the data from the current file
-        data <- read.csv(file.path(path, file), stringsAsFactors = FALSE)
-        
-        # Get the column names
-        col_names <- names(data)
-        
-        # Remove Station, Date, Latitude, Longitude, and Name columns
-        col_names <- col_names[!col_names %in% c("STATION", "DATE", "LATITUDE", "LONGITUDE", "NAME")]
-        
-        # Loop through the remaining columns
-        for (col_name in col_names) {
-          # Check if the variable is already in the frequency table
-          if (col_name %in% freq_table$variable) {
-            # Increment the count for the variable
-            freq_table[freq_table$variable == col_name, "count"] <- freq_table[freq_table$variable == col_name, "count"] + 1
+    for (stationid in stationid_vector) {
+      file_url <- paste0(noaa_url, stationid)
+      download_dir <- "station_data_temp"
+      download_path <- file.path(download_dir, stationid)
+      
+      # Check if the file already exists
+      if (!file.exists(download_path)) {
+        download.file(file_url, destfile = download_path, method = "auto")
+        downloaded_stations <- downloaded_stations + 1
       } else {
-        # Add a new row to the frequency table for the variable
-        freq_table <- rbind(freq_table, data.frame(variable = col_name, count = 1, stringsAsFactors = FALSE))
+        cat(paste("File already exists:", stationid, "\n"))
       }
     }
-  }
 
-  freq_table <- subset(freq_table, !grepl("ATTRIBUTES$", variable))
+    end_time <- Sys.time()  # Record the end time
+    download_duration <- end_time - start_time # equation to calculate download duration
 
-  # Print the frequency table (45 variables)
-  print(freq_table)
-    } else {
-      cat("station_data_temp found.\n")
-    }
+    cat(paste("Download complete. Downloaded", downloaded_stations, "Stations in", as.numeric(download_duration, units = "secs"), "seconds.\n"))
+
+  } else {
+    # Bypass Station Download if folder located
+    cat(paste("Station_Data Folder located.\n"))
   }
+ 
+## Step 1 of 3: Creating USStationData, combining all individual files.
+  if (!exists("USStationData")) {
+    ### Defining variables for compilation 
+    USStationData <- data.frame() # Define an empty data frame
+    station_files <- list.files("station_data_temp", full.names = TRUE) # List all CSV files in the directory
+
+    # Loop through each CSV file and append its data to USStationData
+      for (station_file in station_files) {
+        # Read the CSV file
+        data <- read.csv(station_file, header = TRUE, stringsAsFactors = FALSE)
+      
+          # Append the data to USStationData
+          USStationData <- rbind(USStationData, data)
+
+        cat("USStationData Dataframe updated.\n")
+      }
+
+  } else {
+    cat("USStationData located.\n")
+  }
+  
 }
+
+## Step 2 of 3: Filtering USStatonData by month and year
+  StationData <- subset(USStationData, 
+                    as.integer(substring(DATE, 1, 4)) == year & 
+                    as.integer(substring(DATE, 6, 7)) == month)
+
+## Step 3 of 3: Matching desired coordinate to closest station(s)
+
+
+## Step 4 of 4: Generating Output Table
+
 
 
 
