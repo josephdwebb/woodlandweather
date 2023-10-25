@@ -5,6 +5,7 @@
 
 ### Necessary Libraries
 library(rvest)
+library(ggplot2)
 library(geosphere) #install.packages("geosphere") #See instructions for downlading geosphere
 ## ------------------------------ Work Space -----------------------------------
 ## Global Variables
@@ -14,12 +15,10 @@ site_latitude = 40
 site_longitude = -75
 
 ## Date of Interest
-month = 07
-year = 2021
+month = 06
+year = 2022
 
 ### Station Matching Conditions 
-min_station_distance = 0 #kilometers
-max_station_distance = 10 #kilometers
 number_of_stations = 3
 
 ### Disclaimer: To search by specific variable range view "SiteData.csv".
@@ -109,14 +108,46 @@ woodlandweather <- function() {
                     as.integer(substring(DATE, 6, 7)) == month)
 
 
-## Step 3 of 3: Matching desired coordinate to closest station(s)
-  StationData$Distance <- distHaversine(
-  matrix(c(site_longitude, site_latitude), ncol = 2), # Convert the site coordinates to a matrix
-  matrix(c(StationData$LONGITUDE, StationData$LATITUDE), ncol = 2) # Create a matrix of data coordinates
-)
+## Step 3 of 3: Matching desired coordinate to closest station(s), reorder by distance, add variable counts
+    StationData$"DISTANCE(KM)" <- distHaversine(
+    matrix(c(site_longitude, site_latitude), ncol = 2), # Convert the site coordinates to a matrix
+    matrix(c(StationData$LONGITUDE, StationData$LATITUDE), ncol = 2) # Create a matrix of data coordinates
+  )
 
+  # Calculate the number of non-NA values for each row
+  columns_to_exclude <- c("STATION", "DATE", "LATITUDE", "LONGITUDE", "ELEVATION", "NAME")
+  non_na_counts <- apply(StationData[, setdiff(required_variables, columns_to_exclude)], 1, function(row) sum(!is.na(row)))
+
+  # Create a new column in the data frame with the non-NA counts
+  StationData$"#VARIABLES" <- non_na_counts
+
+  ## Reordering the Rows by Distance
+  StationData <- StationData[order(StationData$"DISTANCE(KM)"), ]
+
+  ## Crop by the number of desired stations
+  StationData <- StationData[1:number_of_stations, ]
+
+  # Output Summary Table
+  summary_data <- StationData[, c("STATION", "DATE", "LATITUDE", "LONGITUDE", "DISTANCE(KM)", "#VARIABLES")]
+  print(summary_data)
+
+# Initialize user_input to start the loop
+  user_input <- ""
+
+# Start a loop to keep asking the question until valid input is provided
+  while (tolower(user_input) != "yes" && tolower(user_input) != "no") {
+  user_input <- readline(prompt = "Would you like to generate a data table for the identified station(s)? (yes/no): ")
+  
+  if (tolower(user_input) == "yes") {
+    cat("Generating output table...\n")
+    # Your code to generate the output table goes here
+  } else if (tolower(user_input) != "yes") {
+    break
+  }
+}
 }
 ## Step 4 of 4: Generating Output Table
+
 
 
 
@@ -145,7 +176,37 @@ woodlandweather()
   ##  2 | Station Name | Distance | Variables.... |  Var_Count | 
   ##  3 | Station Name | Distance | Variables.... |  Var_Count | 
   ## ------------------------------------------------------------------
-  ## PCA: -0.23, PCA R^2: 0.64 
   
+
+cat("---------------------------------------------------------------\
+                     WoodlandWeather - Version 1.0.3\
+---------------------------------------------------------------\
+\
+Welcome to WoodlandWeather, an open-source weather data retrieval and analysis tool.\
+For more information, please visit: josephdwebb.com/projects/woodlandweather/\
+\
+Usage: woodlandweather [options]\
+Alternatively you can define global variables and type woodlandweather()
+\
+Options:\
+  -h, --help             Show this help message and exit.\
+  -s, --site             Specify the site name for data retrieval.\
+  -d, --date             Specify the date for data retrieval (YYYY-MM).\
+  -l, --latitude         Specify the latitude of the site.\
+  -g, --longitude        Specify the longitude of the site.\
+  -m, --month            Specify the month for data retrieval (MM).\
+  -y, --year             Specify the year for data retrieval (YYYY).\
+  -n, --number           Specify the number of stations to retrieve.\
+\
+Example:\
+  Retrieve weather data for Agnew State Forest in June 2022:\
+  $ woodlandweather -s \"Agnew State Forest\" -l 40 -g -75 -m 06 -y 2022 -n 3\
+\
+Feel free to contribute on GitHub: github.com/josephdwebb/woodlandweather.\
+For support and feedback, please contact Joe at josephwebb4@hotmail.com\
+---------------------------------------------------------------")
+
+
+
   
   
