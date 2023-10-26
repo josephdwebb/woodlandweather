@@ -15,8 +15,8 @@ site_latitude = 40
 site_longitude = -75
 
 ## Date of Interest
-month = 06
-year = 2022
+month = 03
+year = 2021
 
 ### Station Matching Conditions 
 number_of_stations = 3
@@ -24,9 +24,8 @@ number_of_stations = 3
 ### Disclaimer: To search by specific variable range view "SiteData.csv".
 ## -----------------------------------------------------------------------------
 ## ---------------------------- Function Code ----------------------------------
-
-## Start of function code
-woodlandweather <- function() {
+## Install(): Start of Function Code
+install <- function()  
 ## Prerequisite: Check if station data is installed 
   if (!dir.exists("station_data_temp")) {
     dir.create("station_data_temp")
@@ -62,6 +61,69 @@ woodlandweather <- function() {
   } else {
     # Bypass Station Download if folder located
     cat(paste("Station_Data_Temp Folder located.\n"))
+  
+  # Initialize user_input to start the loop
+  user_input <- ""
+
+  # Start a loop to keep asking the question until valid input is provided
+    while (tolower(user_input) != "yes" && tolower(user_input) != "no") {
+    user_input <- readline(prompt = "Would you like to update station_data_temp? (yes/no): ")
+    
+    if (tolower(user_input) == "yes") {
+      cat("Deleting station_data_temp\n")
+
+      # Your code to generate the output table goes here
+    } else if (tolower(user_input) != "yes") {
+      break
+    }
+  }
+}
+}
+
+
+
+
+## Woodlandweather(): Start of Function Code
+woodlandweather <- function() {
+## Prerequisite: Check if station data is installed 
+  if (!dir.exists("station_data_temp")) {
+    dir.create("station_data_temp")
+
+    ### Defining variables for download (WARNING: Changing may break code)
+    noaa_url <- "https://www.ncei.noaa.gov/data/global-summary-of-the-month/access/"
+    stationid_vector <- read.csv("assets/StationID.csv", header = FALSE, skip = 1)$V1
+    download_time <- format(Sys.Date(), format = "%d %B %Y")
+
+    ### Download monthly data report of all US stations. (Approximately 65,000 stations)
+    start_time <- Sys.time()  # Record download start time
+    downloaded_stations <- 0  # Define an empty variable count
+
+    for (stationid in stationid_vector) {
+      file_url <- paste0(noaa_url, stationid)
+      download_dir <- "station_data_temp"
+      download_path <- file.path(download_dir, stationid)
+      
+      # Check if the file already exists
+      if (!file.exists(download_path)) {
+        download.file(file_url, destfile = download_path, method = "auto")
+        downloaded_stations <- downloaded_stations + 1
+      } else {
+        cat(paste("File already exists:", stationid, "\n"))
+      }
+    }
+
+    end_time <- Sys.time()  # Record the end time
+    download_duration <- end_time - start_time # equation to calculate download duration
+
+    cat(paste("Download complete. Downloaded", downloaded_stations, "Stations in", as.numeric(download_duration, units = "mins"), "minutes.\n"))
+
+  } else {
+    # Bypass Station Download if folder located
+    cat("-----------------------------------------------------------------\
+                  WoodlandWeather - Version 1.0.3\
+-----------------------------------------------------------------\
+Background:\n")
+    cat(paste("> Station_Data_Temp located.\n"))
   }
  
 ## Step 1 of 3: Combine all individual files to create USStationData
@@ -99,7 +161,7 @@ woodlandweather <- function() {
     }
 
   } else {
-    cat("USStationData located.\n")
+    cat("> USStationData located.\n")
   }
 
 ## Step 2 of 3: Filtering USStatonData by month and year
@@ -129,14 +191,18 @@ woodlandweather <- function() {
 
   # Output Summary Table
   summary_data <- StationData[, c("STATION", "DATE", "LATITUDE", "LONGITUDE", "DISTANCE(KM)", "#VARIABLES")]
+  cat("-----------------------------------------------------------------\
+                            Summary Table\
+-----------------------------------------------------------------\n")
   print(summary_data)
+  cat("-----------------------------------------------------------------\n")
 
 # Initialize user_input to start the loop
   user_input <- ""
 
 # Start a loop to keep asking the question until valid input is provided
   while (tolower(user_input) != "yes" && tolower(user_input) != "no") {
-  user_input <- readline(prompt = "Would you like to generate a data table for the identified station(s)? (yes/no): ")
+  user_input <- readline(prompt = "Would you like to view the variables for the identified station(s)? (yes/no): ")
   
   if (tolower(user_input) == "yes") {
     cat("Generating output table...\n")
@@ -156,57 +222,3 @@ woodlandweather <- function() {
 ## -------------------------- Execute Function ---------------------------------
 
 woodlandweather()
-
-
-
-
-
-  
-
-
-  ## Output:
-  
-  ## Print:
-  ##    (2) Stations Found. Generating summary table...
-  #3    (0) Stations Found. Widen search parameters. 
-  
-  ## Agnew_State_Forest | 40.123, -72.445 | Data Reported for May, 2023
-  ## ------------------------------------------------------------------
-  ##  1 | Station Name | Distance | Variables.... |  Var_Count | 
-  ##  2 | Station Name | Distance | Variables.... |  Var_Count | 
-  ##  3 | Station Name | Distance | Variables.... |  Var_Count | 
-  ## ------------------------------------------------------------------
-  
-
-cat("---------------------------------------------------------------\
-                     WoodlandWeather - Version 1.0.3\
----------------------------------------------------------------\
-\
-Welcome to WoodlandWeather, an open-source weather data retrieval and analysis tool.\
-For more information, please visit: josephdwebb.com/projects/woodlandweather/\
-\
-Usage: woodlandweather [options]\
-Alternatively you can define global variables and type woodlandweather()
-\
-Options:\
-  -h, --help             Show this help message and exit.\
-  -s, --site             Specify the site name for data retrieval.\
-  -d, --date             Specify the date for data retrieval (YYYY-MM).\
-  -l, --latitude         Specify the latitude of the site.\
-  -g, --longitude        Specify the longitude of the site.\
-  -m, --month            Specify the month for data retrieval (MM).\
-  -y, --year             Specify the year for data retrieval (YYYY).\
-  -n, --number           Specify the number of stations to retrieve.\
-\
-Example:\
-  Retrieve weather data for Agnew State Forest in June 2022:\
-  $ woodlandweather -s \"Agnew State Forest\" -l 40 -g -75 -m 06 -y 2022 -n 3\
-\
-Feel free to contribute on GitHub: github.com/josephdwebb/woodlandweather.\
-For support and feedback, please contact Joe at josephwebb4@hotmail.com\
----------------------------------------------------------------")
-
-
-
-  
-  
