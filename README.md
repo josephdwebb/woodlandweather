@@ -13,7 +13,7 @@ Before you can run the `woodlandweather()` program, you will need to follow thes
 
 ### Step 1: Making a Pull Request
 
-1. Visit [WoodlandWeather](https://github.com/josephdwebb/woodlandweather) if you don't have the repository, you can clone it to your local machine.
+1. Visit [WoodlandWeather](https://github.com/josephdwebb/woodlandweather). If you don't have the repository, you can clone it to your local machine.
 2. To make a Pull Request, fork the repository to your own GitHub account.
 3. Clone your forked repository to your local machine using Git or GitHub Desktop.
 
