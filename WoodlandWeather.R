@@ -9,7 +9,7 @@ library(geosphere) #install.packages("geosphere") #See instructions for download
 
 # Example use of code
 # install()
-woodlandweather(s= "Centennial", lat= 40, long= -75, m= 07, y= 2022, n= 10)
+woodlandweather(s= "Centennial", lat= 40, long= -75, m= 07, y= 2022, n= 5)
 
 ## ---------------------------- Function Code ----------------------------------
 ## Install(): Start of Function Code
