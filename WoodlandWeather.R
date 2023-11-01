@@ -4,7 +4,6 @@
 ## For instructions to use refer to the ReadMe at github.io/josephdwebb/ForestMatch
 
 ### Necessary Libraries
-library(ggplot2)
 library(geosphere) #install.packages("geosphere") #See instructions for downloading geosphere
 ## ------------------------------ Work Space -----------------------------------
 
@@ -180,7 +179,7 @@ woodlandweather <- function(s = NULL, lat = NULL, long = NULL, m = NULL, y = NUL
   
   ## Prerequisites
   ## Step 1 of 3: Detect Necessary Packages
-  required_packages <- c("ggplot2", "geosphere")
+  required_packages <- c("geosphere")
 
   if (!all(sapply(required_packages, function(pkg) requireNamespace(pkg, quietly = TRUE)))) {
     install_prompt <- readline("Error: Necessary packages not installed. Would you like to install them? (yes/no): ")
