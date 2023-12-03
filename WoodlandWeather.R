@@ -174,7 +174,7 @@ install <- function(download_subset = 0) {
 ## Woodlandweather(): Start of Function Code
 woodlandweather <- function(s = NULL, lat = NULL, long = NULL, m = NULL, y = NULL, n = NULL, h= NULL) {
   
-  cat("\n\n\n") # Defiine break from terminal input
+  cat("\n\n\n") # Define break from terminal input
   cat(Header) # Define start of function output
   
   ## Prerequisites
